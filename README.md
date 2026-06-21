@@ -1,231 +1,167 @@
-# Network Intrusion Detection System
+# Network Intrusion Detection System Using Python
 
-## 1. Project Overview
+## Project Overview
 
-This project focuses on setting up a Network Intrusion Detection System (NIDS) using Suricata.
-The main goal is to monitor network traffic, detect suspicious or malicious activities, generate alerts, and apply basic response mechanisms when threats are detected.
+This project is a simple **Network Intrusion Detection System (NIDS)** built using Python.
 
-A Network Intrusion Detection System helps security teams discover attacks such as port scanning, brute-force attempts, suspicious DNS traffic, malware communication, and unauthorized access attempts.
+The tool monitors live network traffic and detects suspicious activities such as:
+
+* ICMP ping requests
+* DNS queries
+* HTTP traffic
+* Suspicious port access
+* Possible SSH brute-force attempts
+* Possible port scanning
+* Large network packets
+
+The main goal of this project is to understand how intrusion detection systems work and how network traffic can be analyzed to detect possible attacks or suspicious behavior.
 
 ---
 
-## 2. Tools Used
+## What is a Network Intrusion Detection System?
 
-* Suricata
+A **Network Intrusion Detection System** is a security system that monitors network traffic and looks for suspicious or malicious activity.
+
+It does not prevent attacks by default.
+Instead, it detects the activity and generates alerts so the security team or administrator can investigate.
+
+In this project, the NIDS tool was created using Python and the `scapy` library.
+
+---
+
+## Tools and Technologies Used
+
+* Python 3
+* Scapy
 * Linux / Kali Linux / Ubuntu
-* Custom IDS rules
-* EVE JSON logs
-* jq for reading JSON logs
-* Optional: Elastic Stack / Kibana for visualization
+* iptables
+* JSON logs
+* Command-line interface
 
 ---
 
-## 3. System Requirements
+## Project Files
 
-* Linux machine
-* Root or sudo privileges
-* Internet connection
-* Network interface such as eth0, ens33, or wlan0
-* Basic knowledge of networking and security monitoring
+```text
+Network-Intrusion-Detection-System/
+│
+├── nids_tool.py
+├── network_intrusion_detection_system.md
+├── alerts.log
+└── alerts.jsonl
+```
+
+### File Description
+
+| File                                    | Description                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------ |
+| `nids_tool.py`                          | Main Python tool for monitoring and detecting suspicious network traffic |
+| `network_intrusion_detection_system.md` | Project documentation                                                    |
+| `alerts.log`                            | Text file that stores readable alerts                                    |
+| `alerts.jsonl`                          | JSON Lines file that stores alerts in structured format                  |
 
 ---
 
-## 4. Installing Suricata
+## Requirements
+
+Before running the tool, make sure Python 3 is installed.
+
+Check Python version:
+
+```bash
+python3 --version
+```
+
+Install Scapy:
+
+```bash
+pip install scapy
+```
+
+On some Linux systems, you may need to use:
 
 ```bash
 sudo apt update
-sudo apt install suricata jq -y
+sudo apt install python3-pip -y
+pip3 install scapy
 ```
 
-Check Suricata version:
+---
 
-```bash
-suricata --build-info
-```
+## How to Find Your Network Interface
 
-Check available network interfaces:
+Before running the tool, you need to know the name of your network interface.
+
+Use this command:
 
 ```bash
 ip a
 ```
 
-Example interface:
+Example interfaces:
 
-```bash
+```text
 eth0
+wlan0
+ens33
+enp0s3
 ```
+
+If you are using Ethernet, the interface may be `eth0` or `ens33`.
+
+If you are using Wi-Fi, the interface may be `wlan0`.
 
 ---
 
-## 5. Basic Suricata Configuration
+## How to Run the Tool
 
-Suricata main configuration file is usually located at:
+The tool needs root privileges because it captures live network packets.
 
-```bash
-/etc/suricata/suricata.yaml
-```
-
-Open the configuration file:
+Basic command:
 
 ```bash
-sudo nano /etc/suricata/suricata.yaml
-```
-
-Make sure the HOME_NET value matches your local network.
-
-Example:
-
-```yaml
-HOME_NET: "[192.168.1.0/24]"
-```
-
-This tells Suricata that the local network is `192.168.1.0/24`.
-
----
-
-## 6. Creating Custom Detection Rules
-
-Custom rules can be stored in:
-
-```bash
-/etc/suricata/rules/local.rules
-```
-
-Open the file:
-
-```bash
-sudo nano /etc/suricata/rules/local.rules
-```
-
-### Rule 1: Detect ICMP Ping
-
-```bash
-alert icmp any any -> $HOME_NET any (msg:"ICMP Ping Detected"; sid:1000001; rev:1;)
-```
-
-This rule generates an alert when ICMP traffic is detected.
-
----
-
-### Rule 2: Detect Possible SSH Brute Force Attempt
-
-```bash
-alert tcp any any -> $HOME_NET 22 (msg:"Possible SSH Connection Attempt"; flags:S; sid:1000002; rev:1;)
-```
-
-This rule detects TCP connection attempts to SSH port 22.
-
----
-
-### Rule 3: Detect HTTP Access
-
-```bash
-alert http any any -> $HOME_NET any (msg:"HTTP Traffic Detected"; sid:1000003; rev:1;)
-```
-
-This rule alerts when HTTP traffic is detected.
-
----
-
-### Rule 4: Detect DNS Traffic
-
-```bash
-alert dns any any -> any any (msg:"DNS Query Detected"; sid:1000004; rev:1;)
-```
-
-This rule detects DNS queries.
-
----
-
-## 7. Adding Local Rules to Suricata
-
-Make sure Suricata loads the local rules file.
-
-Open:
-
-```bash
-sudo nano /etc/suricata/suricata.yaml
-```
-
-Search for:
-
-```yaml
-rule-files:
-```
-
-Add:
-
-```yaml
-  - local.rules
-```
-
----
-
-## 8. Testing Suricata Configuration
-
-Before running Suricata, test the configuration:
-
-```bash
-sudo suricata -T -c /etc/suricata/suricata.yaml -v
-```
-
-If there are no errors, Suricata is ready to run.
-
----
-
-## 9. Running Suricata for Network Monitoring
-
-Run Suricata on a network interface:
-
-```bash
-sudo suricata -c /etc/suricata/suricata.yaml -i eth0
+sudo python3 nids_tool.py -i eth0
 ```
 
 Replace `eth0` with your actual network interface.
 
-To run it as a service:
+Example for Wi-Fi:
 
 ```bash
-sudo systemctl enable suricata
-sudo systemctl start suricata
-sudo systemctl status suricata
+sudo python3 nids_tool.py -i wlan0
+```
+
+Example for VMware or VirtualBox:
+
+```bash
+sudo python3 nids_tool.py -i ens33
 ```
 
 ---
 
-## 10. Viewing Alerts
+## Running the Tool with Auto Block
 
-Suricata stores alerts in:
+The tool supports an optional response mechanism using `iptables`.
 
-```bash
-/var/log/suricata/
-```
-
-View fast alerts:
+To enable automatic blocking of suspicious IP addresses:
 
 ```bash
-sudo tail -f /var/log/suricata/fast.log
+sudo python3 nids_tool.py -i eth0 --auto-block
 ```
 
-View EVE JSON logs:
+This option blocks IP addresses that generate high-severity alerts.
 
-```bash
-sudo tail -f /var/log/suricata/eve.json
-```
-
-Read only alerts from EVE JSON using jq:
-
-```bash
-sudo tail -f /var/log/suricata/eve.json | jq 'select(.event_type=="alert")'
-```
+> Note: Auto-block should be used carefully because it can block legitimate devices if false alerts happen.
 
 ---
 
-## 11. Testing the Detection Rules
+## Tool Features
 
-### Test ICMP Detection
+### 1. ICMP Detection
 
-From another machine, run:
+The tool detects ICMP packets such as ping requests.
+
+Example suspicious activity:
 
 ```bash
 ping TARGET_IP
@@ -234,14 +170,172 @@ ping TARGET_IP
 Expected alert:
 
 ```text
-ICMP Ping Detected
+ICMP_DETECTED
+```
+
+This can indicate network probing or simple connectivity testing.
+
+---
+
+### 2. DNS Query Detection
+
+The tool detects DNS queries made by devices on the network.
+
+Example alert:
+
+```text
+DNS_QUERY
+```
+
+This helps identify domain requests and possible suspicious DNS activity.
+
+---
+
+### 3. HTTP Traffic Detection
+
+The tool detects HTTP traffic on port 80.
+
+Expected alert:
+
+```text
+HTTP_TRAFFIC
+```
+
+This helps monitor unencrypted web traffic.
+
+---
+
+### 4. Suspicious Port Detection
+
+The tool monitors access to commonly targeted ports.
+
+Examples:
+
+| Port | Service |
+| ---- | ------- |
+| 21   | FTP     |
+| 22   | SSH     |
+| 23   | Telnet  |
+| 445  | SMB     |
+| 3389 | RDP     |
+| 5900 | VNC     |
+
+Expected alert:
+
+```text
+SUSPICIOUS_PORT_ACCESS
 ```
 
 ---
 
-### Test SSH Detection
+### 5. SSH Brute-Force Detection
 
-From another machine, run:
+The tool detects repeated SSH connection attempts.
+
+If one IP sends many SSH SYN packets in a short time, the tool generates this alert:
+
+```text
+POSSIBLE_SSH_BRUTE_FORCE
+```
+
+This may indicate a brute-force attack attempt against SSH.
+
+---
+
+### 6. Port Scan Detection
+
+The tool detects when one IP tries to connect to many different ports quickly.
+
+Expected alert:
+
+```text
+POSSIBLE_PORT_SCAN
+```
+
+This may indicate scanning activity before an attack.
+
+---
+
+### 7. Large Packet Detection
+
+The tool detects packets larger than normal size.
+
+Expected alert:
+
+```text
+LARGE_PACKET
+```
+
+This can help identify unusual traffic patterns.
+
+---
+
+## Alert Output
+
+When the tool detects suspicious activity, it prints the alert in the terminal and saves it in log files.
+
+Example terminal output:
+
+```text
+[2026-06-21 19:10:44] [LOW] ICMP_DETECTED | SRC=192.168.1.8 -> DST=192.168.1.5 | ICMP packet detected, possible ping or network probing.
+```
+
+---
+
+## Log Files
+
+The tool creates two log files:
+
+```text
+alerts.log
+alerts.jsonl
+```
+
+### alerts.log
+
+This file stores alerts in a simple readable text format.
+
+Example:
+
+```text
+[2026-06-21 19:10:44] [LOW] ICMP_DETECTED | SRC=192.168.1.8 -> DST=192.168.1.5 | ICMP packet detected, possible ping or network probing.
+```
+
+### alerts.jsonl
+
+This file stores alerts in JSON format.
+
+Example:
+
+```json
+{"time": "2026-06-21 19:10:44", "alert_type": "ICMP_DETECTED", "severity": "LOW", "message": "ICMP packet detected, possible ping or network probing.", "src_ip": "192.168.1.8", "dst_ip": "192.168.1.5", "src_port": null, "dst_port": null, "protocol": "ICMP"}
+```
+
+JSON logs are useful for dashboards, graphs, and future analysis.
+
+---
+
+## Testing the Tool
+
+### Test 1: ICMP Ping Detection
+
+From another device on the same network:
+
+```bash
+ping TARGET_IP
+```
+
+Expected alert:
+
+```text
+ICMP_DETECTED
+```
+
+---
+
+### Test 2: SSH Detection
+
+From another machine:
 
 ```bash
 ssh user@TARGET_IP
@@ -250,165 +344,219 @@ ssh user@TARGET_IP
 Expected alert:
 
 ```text
-Possible SSH Connection Attempt
+SUSPICIOUS_PORT_ACCESS
 ```
+
+or:
+
+```text
+POSSIBLE_SSH_BRUTE_FORCE
+```
+
+if repeated many times.
 
 ---
 
-### Test HTTP Detection
+### Test 3: HTTP Detection
 
-Open a website or access a local web server.
+Open any website that uses HTTP or access a local HTTP server.
 
 Expected alert:
 
 ```text
-HTTP Traffic Detected
+HTTP_TRAFFIC
 ```
 
 ---
 
-## 12. Continuous Monitoring
+### Test 4: Port Scan Detection
 
-Suricata can monitor traffic continuously by running as a service.
-
-Start Suricata:
+In a lab environment only, scan your own machine:
 
 ```bash
-sudo systemctl start suricata
+nmap TARGET_IP
 ```
 
-Enable Suricata on boot:
+Expected alert:
 
-```bash
-sudo systemctl enable suricata
+```text
+POSSIBLE_PORT_SCAN
 ```
 
-Check logs continuously:
-
-```bash
-sudo tail -f /var/log/suricata/fast.log
-```
-
-Or:
-
-```bash
-sudo tail -f /var/log/suricata/eve.json | jq 'select(.event_type=="alert")'
-```
+This test should only be done on devices you own or have permission to test.
 
 ---
 
-## 13. Response Mechanisms
+## Response Mechanism
 
-When suspicious traffic is detected, the following response actions can be applied:
+The tool includes a simple response mechanism.
 
-### 1. Block Suspicious IP Address
-
-Example using iptables:
-
-```bash
-sudo iptables -A INPUT -s ATTACKER_IP -j DROP
-```
-
-### 2. Block Suspicious SSH Attempts
-
-```bash
-sudo iptables -A INPUT -p tcp --dport 22 -s ATTACKER_IP -j DROP
-```
-
-### 3. Save Alerts for Investigation
-
-```bash
-sudo cp /var/log/suricata/fast.log ~/suricata_alerts_backup.log
-```
-
-### 4. Restart Suricata After Rule Updates
-
-```bash
-sudo systemctl restart suricata
-```
-
-### 5. Notify Administrator
-
-A simple alert notification script can be created to watch logs and notify the admin when an alert appears.
+When `--auto-block` is enabled, the tool can block suspicious IP addresses using `iptables`.
 
 Example:
 
 ```bash
-#!/bin/bash
-
-tail -f /var/log/suricata/fast.log | while read line
-do
-    echo "Security Alert: $line"
-done
+sudo python3 nids_tool.py -i eth0 --auto-block
 ```
 
-Save it as:
+Blocking command used by the tool:
 
 ```bash
-alert_monitor.sh
+iptables -A INPUT -s ATTACKER_IP -j DROP
 ```
 
-Make it executable:
-
-```bash
-chmod +x alert_monitor.sh
-```
-
-Run it:
-
-```bash
-./alert_monitor.sh
-```
+This helps reduce the risk from repeated suspicious traffic.
 
 ---
 
-## 14. Optional Visualization
+## How the Tool Works
 
-For better analysis, Suricata logs can be visualized using:
+The tool works in the following steps:
 
-* Elastic Stack
-* Kibana
-* Grafana
-* Security Onion
-
-Suricata EVE JSON logs can be sent to Elastic Stack, then visualized in Kibana dashboards.
-
-Possible dashboard charts:
-
-* Number of alerts per day
-* Top attacking IP addresses
-* Most targeted ports
-* Alert severity levels
-* Protocol distribution
+1. Starts packet sniffing on the selected network interface.
+2. Reads each packet.
+3. Checks the packet against detection rules.
+4. Creates alerts for suspicious behavior.
+5. Saves alerts in text and JSON format.
+6. Optionally blocks suspicious IP addresses.
 
 ---
 
-## 15. Example Alert Output
+## Detection Logic
 
-Example alert from `fast.log`:
+| Detection Type   | Method Used                                         |
+| ---------------- | --------------------------------------------------- |
+| ICMP detection   | Checks for ICMP packets                             |
+| DNS detection    | Checks for DNS layer                                |
+| HTTP detection   | Checks TCP traffic on port 80                       |
+| Suspicious ports | Checks destination ports like 22, 23, 445, 3389     |
+| SSH brute force  | Counts repeated SSH SYN packets                     |
+| Port scan        | Counts unique ports contacted by the same source IP |
+| Large packet     | Checks packet size                                  |
+
+---
+
+## Example Use Case
+
+A user starts the tool:
+
+```bash
+sudo python3 nids_tool.py -i eth0
+```
+
+Another device sends ping requests:
+
+```bash
+ping 192.168.1.5
+```
+
+The tool detects the ICMP traffic and creates an alert:
 
 ```text
-[**] [1:1000001:1] ICMP Ping Detected [**]
-[Classification: Potentially Bad Traffic] [Priority: 2]
-06/21/2026-14:20:01 192.168.1.10 -> 192.168.1.5
-ICMP TTL:64 TOS:0x0 ID:12345 IpLen:20 DgmLen:84
+ICMP_DETECTED
 ```
 
-This alert shows that an ICMP ping was detected from `192.168.1.10` to `192.168.1.5`.
+If an attacker tries to connect to many ports quickly, the tool detects it as:
+
+```text
+POSSIBLE_PORT_SCAN
+```
+
+If auto-block is enabled, the tool can block the suspicious source IP.
 
 ---
 
-## 16. Findings
+## Optional Dashboard Idea
 
-During testing, Suricata successfully detected suspicious network activities such as:
+The JSON log file `alerts.jsonl` can be used later with tools like:
 
-* ICMP ping traffic
-* SSH connection attempts
-* HTTP traffic
-* DNS queries
-* Possible scanning behavior
+* Kibana
+* Grafana
+* Elastic Stack
+* Python charts
+* Power BI
 
-The alerts were stored in Suricata log files and could be reviewed using `fast.log` or `eve.json`.
+Possible dashboard graphs:
+
+* Number of alerts per type
+* Top source IP addresses
+* Most targeted ports
+* Alerts over time
+* Severity levels
 
 ---
 
+## Security Notes
+
+This tool is for educational and defensive purposes only.
+
+Do not use it to monitor networks without permission.
+
+Only test scanning or suspicious traffic detection inside your own lab environment or on systems you are allowed to test.
+
+---
+
+## Problems Faced
+
+Some common issues while running the tool:
+
+### Permission Error
+
+Problem:
+
+```text
+Please run this tool as root/admin.
+```
+
+Solution:
+
+```bash
+sudo python3 nids_tool.py -i eth0
+```
+
+---
+
+### Wrong Interface
+
+Problem:
+
+```text
+Error: Interface not found
+```
+
+Solution:
+
+Check your interface name:
+
+```bash
+ip a
+```
+
+Then run the tool with the correct interface.
+
+---
+
+### Scapy Not Installed
+
+Problem:
+
+```text
+ModuleNotFoundError: No module named 'scapy'
+```
+
+Solution:
+
+```bash
+pip install scapy
+```
+
+or:
+
+```bash
+pip3 install scapy
+```
+
+---
+
+* How to apply basic response actions using iptables
+* How logs can be used for future dashboards and analysis
